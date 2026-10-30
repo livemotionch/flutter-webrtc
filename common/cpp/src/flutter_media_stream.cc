@@ -181,8 +181,27 @@ void FlutterMediaStream::GetUserAudio(const EncodableMap& constraints,
       }
     }
 
+    libwebrtc::RTCAudioOptions audio_options;
+    auto audio_options_it = constraints.find(EncodableValue("audio"));
+    if (audio_options_it != constraints.end() &&
+        TypeIs<EncodableMap>(audio_options_it->second)) {
+      const auto audio_map = GetValue<EncodableMap>(audio_options_it->second);
+      const auto boolean_option = [&](const char* name, bool fallback) {
+        const auto entry = audio_map.find(EncodableValue(name));
+        return entry != audio_map.end() && TypeIs<bool>(entry->second)
+                   ? GetValue<bool>(entry->second)
+                   : fallback;
+      };
+      audio_options.echo_cancellation =
+          boolean_option("echoCancellation", audio_options.echo_cancellation);
+      audio_options.auto_gain_control =
+          boolean_option("autoGainControl", audio_options.auto_gain_control);
+      audio_options.noise_suppression =
+          boolean_option("noiseSuppression", audio_options.noise_suppression);
+    }
     scoped_refptr<RTCAudioSource> source =
-        base_->factory_->CreateAudioSource("audio_input");
+        base_->factory_->CreateAudioSource(
+            "audio_input", libwebrtc::RTCAudioSource::kMicrophone, audio_options);
     std::string uuid = base_->GenerateUUID();
     scoped_refptr<RTCAudioTrack> track =
         base_->factory_->CreateAudioTrack(source, uuid.c_str());
@@ -201,9 +220,9 @@ void FlutterMediaStream::GetUserAudio(const EncodableMap& constraints,
     settings[EncodableValue("deviceId")] =
         EncodableValue(SanitizeUtf8ForFlutter(sourceId));
     settings[EncodableValue("kind")] = EncodableValue("audioinput");
-    settings[EncodableValue("autoGainControl")] = EncodableValue(true);
-    settings[EncodableValue("echoCancellation")] = EncodableValue(true);
-    settings[EncodableValue("noiseSuppression")] = EncodableValue(true);
+    settings[EncodableValue("autoGainControl")] = EncodableValue(audio_options.auto_gain_control);
+    settings[EncodableValue("echoCancellation")] = EncodableValue(audio_options.echo_cancellation);
+    settings[EncodableValue("noiseSuppression")] = EncodableValue(audio_options.noise_suppression);
     settings[EncodableValue("channelCount")] = EncodableValue(1);
     settings[EncodableValue("latency")] = EncodableValue(0);
     track_info[EncodableValue("settings")] = EncodableValue(settings);
