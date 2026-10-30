@@ -12,6 +12,7 @@ import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LifecycleOwner;
 
 import com.cloudwebrtc.webrtc.audio.AudioProcessingController;
+import com.cloudwebrtc.webrtc.audio.AudioRecordCallbackAdapter;
 import com.cloudwebrtc.webrtc.audio.AudioSwitchManager;
 import com.cloudwebrtc.webrtc.utils.AnyThreadSink;
 import com.cloudwebrtc.webrtc.utils.ConstraintsMap;
@@ -52,6 +53,13 @@ public class FlutterWebRTCPlugin implements FlutterPlugin, ActivityAware, EventC
     }
 
     public static FlutterWebRTCPlugin sharedSingleton;
+
+    /**
+     * The audio device module's record error and state callbacks. Static, so
+     * an app can register before the module exists: it is built on first use.
+     */
+    public static final AudioRecordCallbackAdapter audioRecordCallbacks =
+            new AudioRecordCallbackAdapter();
 
     public AudioProcessingController getAudioProcessingController() {
         return methodCallHandler.audioProcessingController;

@@ -278,6 +278,8 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     }
 
     audioDeviceModuleBuilder.setSamplesReadyCallback(recordSamplesReadyCallbackAdapter);
+    audioDeviceModuleBuilder.setAudioRecordErrorCallback(FlutterWebRTCPlugin.audioRecordCallbacks);
+    audioDeviceModuleBuilder.setAudioRecordStateCallback(FlutterWebRTCPlugin.audioRecordCallbacks);
     audioDeviceModuleBuilder.setPlaybackSamplesReadyCallback(playbackSamplesReadyCallbackAdapter);
 
     recordSamplesReadyCallbackAdapter.addCallback(getUserMediaImpl.inputSamplesInterceptor);
@@ -302,6 +304,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     }
 
     audioDeviceModule = audioDeviceModuleBuilder.createAudioDeviceModule();
+    FlutterWebRTCPlugin.audioRecordCallbacks.setAudioDeviceModule((JavaAudioDeviceModule) audioDeviceModule);
 
     if(!bypassVoiceProcessing) {
        if(JavaAudioDeviceModule.isBuiltInNoiseSuppressorSupported()) {
