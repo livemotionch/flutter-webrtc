@@ -31,16 +31,12 @@ NSArray<RTCDesktopSource*>* _captureSources;
   
 #if TARGET_OS_IPHONE
   BOOL useBroadcastExtension = false;
-  BOOL presentBroadcastPicker = false;
 
   id videoConstraints = constraints[@"video"];
   if ([videoConstraints isKindOfClass:[NSDictionary class]]) {
     // constraints.video.deviceId
     useBroadcastExtension =
         [((NSDictionary*)videoConstraints)[@"deviceId"] hasPrefix:@"broadcast"];
-    presentBroadcastPicker =
-        useBroadcastExtension &&
-        ![((NSDictionary*)videoConstraints)[@"deviceId"] hasSuffix:@"-manual"];
   }
 
   id screenCapturer;
@@ -59,23 +55,6 @@ NSArray<RTCDesktopSource*>* _captureSources;
           trackUUID);
     [screenCapturer stopCaptureWithCompletionHandler:handler];
   };
-
-  if (presentBroadcastPicker) {
-    NSString* extension =
-        [[[NSBundle mainBundle] infoDictionary] valueForKey:kRTCScreenSharingExtension];
-
-    RPSystemBroadcastPickerView* picker = [[RPSystemBroadcastPickerView alloc] init];
-    picker.showsMicrophoneButton = false;
-    if (extension) {
-      picker.preferredExtension = extension;
-    } else {
-      NSLog(@"Not able to find the %@ key", kRTCScreenSharingExtension);
-    }
-    SEL selector = NSSelectorFromString(@"buttonPressed:");
-    if ([picker respondsToSelector:selector]) {
-      [picker performSelector:selector withObject:nil];
-    }
-  }
 #endif
 
 #if TARGET_OS_OSX
