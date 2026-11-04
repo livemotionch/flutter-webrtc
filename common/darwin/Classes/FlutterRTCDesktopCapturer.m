@@ -4,7 +4,6 @@
 
 #if TARGET_OS_IPHONE
 #import <ReplayKit/ReplayKit.h>
-#import "FlutterBroadcastScreenCapturer.h"
 #import "FlutterRPScreenRecorder.h"
 #endif
 
@@ -30,29 +29,14 @@ NSArray<RTCDesktopSource*>* _captureSources;
   VideoProcessingAdapter *videoProcessingAdapter = [[VideoProcessingAdapter alloc] initWithRTCVideoSource:videoSource];
   
 #if TARGET_OS_IPHONE
-  BOOL useBroadcastExtension = false;
-
-  id videoConstraints = constraints[@"video"];
-  if ([videoConstraints isKindOfClass:[NSDictionary class]]) {
-    // constraints.video.deviceId
-    useBroadcastExtension =
-        [((NSDictionary*)videoConstraints)[@"deviceId"] hasPrefix:@"broadcast"];
-  }
-
-  id screenCapturer;
-
-  if (useBroadcastExtension) {
-    screenCapturer = [[FlutterBroadcastScreenCapturer alloc] initWithDelegate:videoProcessingAdapter];
-  } else {
-    screenCapturer = [[FlutterRPScreenRecorder alloc] initWithDelegate:[videoProcessingAdapter source]];
-  }
+  id screenCapturer =
+      [[FlutterRPScreenRecorder alloc] initWithDelegate:[videoProcessingAdapter source]];
 
   [screenCapturer startCapture];
-  NSLog(@"start %@ capture", useBroadcastExtension ? @"broadcast" : @"replykit");
+  NSLog(@"start replykit capture");
 
   self.videoCapturerStopHandlers[trackUUID] = ^(CompletionHandler handler) {
-    NSLog(@"stop %@ capture, trackID %@", useBroadcastExtension ? @"broadcast" : @"replykit",
-          trackUUID);
+    NSLog(@"stop replykit capture, trackID %@", trackUUID);
     [screenCapturer stopCaptureWithCompletionHandler:handler];
   };
 #endif
